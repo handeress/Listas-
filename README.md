@@ -38,3 +38,4 @@ Subir `VERSION` en index.html y `CACHE` en sw.js en cada cambio. Para actualizar
 
 - 1.0 (24/11/2026): listas con selección, categoría, hecho, cancelado y nota; ordenar, mover, +10, buscar, compartir cifrado, sin señal, buzón de Claude.
 - 1.1 (24/11/2026): engranaje para Ajustes (naranja = por enviar, rojo = error), ✓ guardar y ✕ descartar los cambios desde que se abrió la lista, línea bajo cada texto, filas más juntas, fondo verde en las hechas.
+- 1.2 (24/11/2026): hechas en taupe claro; al abrir la app entra a la última lista usada.

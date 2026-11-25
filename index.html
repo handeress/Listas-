@@ -44,7 +44,7 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 .orden .izq{justify-items:start;padding-left:4px}
 .it{min-height:40px;border-radius:10px;margin:1px 0;transition:background .15s}
 .it .sel,.it .cat,.it .ok,.it .no,.it .mas{height:40px;display:grid;place-items:center}
-.it.hecho{background:#bfe8cb}
+.it.hecho{background:#ece6dd}
 .circ{width:22px;height:22px;border-radius:50%;border:2px solid #b8b0a3;display:grid;place-items:center}
 .sel.on .circ{border-color:var(--acento);background:var(--acento)}
 .sel.on .circ::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
@@ -52,9 +52,9 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 .cat .hueco{width:24px;height:24px;border-radius:6px;border:1.5px dashed #cfc8bb}
 .tx{width:100%;border:0;border-bottom:1px solid #d6cfc2;border-radius:0;background:none;outline:none;resize:none;padding:8px 4px 5px;line-height:1.3;min-height:36px;overflow:hidden;display:block}
 .tx:focus{border-bottom-color:var(--acento)}
-.it.hecho .tx{border-bottom-color:#8fcfa2}
+.it.hecho .tx{border-bottom-color:#d3c8b8}
 .tx::placeholder{color:transparent}
-.it.hecho .tx{color:#14532d}
+.it.hecho .tx{color:#6f6458}
 .it.cancelado .tx{color:var(--gris);text-decoration:line-through}
 .ok svg,.no svg{width:22px;height:22px;opacity:.28;color:var(--gris);transition:transform .15s}
 .ok.on svg{opacity:1;color:var(--ok);transform:scale(1.3)}
@@ -113,7 +113,7 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.1';
+const VERSION='1.2';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -251,7 +251,7 @@ function syncHist(){const L2=nivel(),n=(history.state&&history.state.n)||0;if(L2
 addEventListener('popstate',e=>{const n=(e.state&&e.state.n)||0;
   while(nivel()>n){ if(S.zoom)S.zoom=null; else if(S.modal){ if(S.modal.tipo==='nota')guardarNota(); S.modal=null; } else {S.vista='inicio';S.sel.clear();S.q='';S.snapId=null;} }
   pintar();});
-function lugar(){try{localStorage.setItem('listas_lugar',JSON.stringify({v:S.vista,l:S.lista,t:Date.now()}));}catch(e){}}
+function lugar(){try{if(S.vista==='lista'&&S.lista)localStorage.setItem('listas_ultima',S.lista);}catch(e){}}
 function pintarSuave(){const a=document.activeElement;if(a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT')&&a.type!=='file'){repintar=true;return;}pintar();}
 document.addEventListener('focusout',()=>setTimeout(()=>{const a=document.activeElement;if(repintar&&!(a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT'))){repintar=false;pintar();}},50));
 function ponerPunto(){const p=$('#bAj');if(p)p.className='ic engr '+(claseSync==='err'?'err':(M.pend.length||M.pendC.length)?'pend':'');}
@@ -507,7 +507,7 @@ function datosDemo(){const a=nuevaLista('Viaje de campo',0);let o=0;
   if(demo){datosDemo();estadoSync='Modo de prueba: no se guarda ni se envía nada.';}
   else{ await abrirDB(); L=(await iget('L'))||{}; M=Object.assign(M,(await iget('M'))||{});
     if(!M.tok){M.tok=await llaveBitacora();if(M.tok)guardar();} }
-  try{const g=JSON.parse(localStorage.getItem('listas_lugar')||'null');if(g&&Date.now()-g.t<12*3600e3&&(g.v!=='lista'||L[g.l])){S.vista=g.v==='ajustes'?'inicio':g.v;S.lista=g.l;}}catch(e){}
+  try{const u=localStorage.getItem('listas_ultima');if(u&&L[u]&&!L[u].borrada){S.vista='lista';S.lista=u;}}catch(e){}  // abre la última lista usada
   await abrirEnlace();
   pintar(); sincronizar();
   if('serviceWorker' in navigator&&!demo)navigator.serviceWorker.register('sw.js').catch(()=>{});
