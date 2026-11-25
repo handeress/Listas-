@@ -153,7 +153,7 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.7';
+const VERSION='1.8';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -590,11 +590,11 @@ function enlace(c){return location.origin+location.pathname+'#u='+c.id+'.'+c.key
 async function enviar(titulo,texto){try{if(navigator.share){await navigator.share({title:titulo,text:texto});return;}}catch(e){if(e&&e.name==='AbortError')return;}
   try{await navigator.clipboard.writeText(texto);toast('Copiado: pégalo en WhatsApp');}catch(e){open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');}}
 const lineaTxt=it=>(it.est==='hecho'?'✓ ':it.est==='cancelado'?'✗ ':'○ ')+(it.cat?it.cat+' ':'')+it.txt+(it.sub?' ('+it.sub+')':'')+(it.nota&&it.nota.txt?' — '+it.nota.txt.replace(/\n/g,' '):'');
-/* Solo los textos, con guion para que WhatsApp los muestre como viñetas; sin las canceladas. */
-async function copiarLista(l){const t=items(l).filter(it=>lleno(it)&&it.est!=='cancelado').map(it=>'- '+it.txt.trim()).join('\n');
+/* Solo los textos, con guion para viñetas de WhatsApp. Si hay seleccionados, solo esos; si no, toda la lista sin las canceladas. */
+async function copiarLista(l){const sel=items(l).filter(it=>lleno(it)&&S.sel.has(it.id));const t=(sel.length?sel:items(l).filter(it=>lleno(it)&&it.est!=='cancelado')).map(it=>'- '+it.txt.trim()).join('\n');
   if(!t)return toast('No hay nada para copiar');
   try{await navigator.clipboard.writeText(t);}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(_){}a.remove();}
-  toast('Lista copiada');}
+  toast(sel.length?(sel.length===1?'1 ítem copiado':sel.length+' ítems copiados'):'Lista copiada');}
 function textoLista(l){if(esTab(l))return (l.nombre||'Tablero')+'\n'+secs(l).map(sc=>'\n'+(sc.nombre||'Sección').toUpperCase()+'\n'+deSec(l,sc.id).filter(lleno).map(lineaTxt).join('\n')).join('\n');return (l.nombre||'Lista')+'\n'+items(l).filter(lleno).map(it=>(it.est==='hecho'?'✓ ':it.est==='cancelado'?'✗ ':'○ ')+(it.cat?it.cat+' ':'')+it.txt+(it.nota&&it.nota.txt?' — '+it.nota.txt.replace(/\n/g,' '):'')).join('\n');}
 async function compartir(l,op){
   if(op==='copia'){S.modal=null;pintar();return enviar(l.nombre,textoLista(l));}
