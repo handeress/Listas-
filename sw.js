@@ -1,5 +1,5 @@
 // Subir el número en cada cambio de la app para que el celular tome la versión nueva.
-const CACHE = 'listas-v4';
+const CACHE = 'listas-v5';
 const ARCHIVOS = ['./', 'index.html', 'manifest.json', 'icono-192.png', 'icono-512.png'];
 
 self.addEventListener('install', e => {

@@ -37,6 +37,7 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 .herr button{width:48px;height:44px;display:grid;place-items:center;color:var(--tinta);border-radius:10px}
 .herr button.apag{opacity:.3}
 .herr .sep{flex:1}
+.herr button.on{color:var(--acento);background:#f6e3d8}
 .g{display:grid;grid-template-columns:34px 38px minmax(0,1fr) 40px 40px 36px;align-items:center}
 .orden{height:30px;color:#a49c8f}
 .orden button{height:30px;display:grid;place-items:center;color:#b3ab9e}
@@ -137,7 +138,7 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.3';
+const VERSION='1.4';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -159,6 +160,7 @@ const SVG={
   tab:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
   chev:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   ordenar:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V4M3 8l4-4 4 4M17 4v16M13 16l4 4 4-4"/></svg>',
+  filtro:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5z"/></svg>',
   flecha:'<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   img:'<svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   engr:'<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
@@ -344,7 +346,7 @@ function pintarLista(l){
   const ns=S.sel.size, o=S.orden[l.id]||{};
   const fl=c=>`<button class="${o.c===c?'on':''}${c==='txt'?' izq':''}" data-or="${c}" aria-label="Ordenar"><span style="display:block;transform:rotate(${o.c===c&&o.d<0?180:0}deg)">${SVG.flecha}</span></button>`;
   let h=`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre de la lista" ${l.recibida&&l.comp&&!l.comp.revocada?'':''}>`
-   +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button></div>`
+   +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button></div>`
    +`<div class="g orden"><button data-or="sel" aria-label="Seleccionar todo"><span class="circ" style="width:16px;height:16px;border-width:1.5px;${ns&&ns===items(l).filter(lleno).length?'background:var(--acento);border-color:var(--acento)':''}"></span></button>${fl('cat')}${fl('txt')}${fl('hecho')}${fl('cancelado')}<span></span></div>`;
   for(const it of vis){const sel=S.sel.has(it.id);
     h+=`<div class="g it ${it.est}" data-i="${esc(it.id)}">
@@ -381,7 +383,7 @@ function pintarTablero(l){
     <input class="tj-sub" data-sub value="${esc(it.sub||'')}" placeholder="detalle" enterkeyhint="next">
     <div class="tj-b"><button class="ok${it.est==='hecho'?' on':''}" data-a="hecho" aria-label="Hecha">${SVG.ok}</button><button class="no${it.est==='cancelado'?' on':''}" data-a="cancelado" aria-label="Cancelada">${SVG.no}</button></div></div>`;
   let h=`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre del tablero">`
-   +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover">${SVG.mover}</button><span class="sep"></span><button data-h="ordenar" aria-label="Ordenar">${SVG.ordenar}</button></div>`;
+   +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button><button data-h="ordenar" aria-label="Ordenar">${SVG.ordenar}</button></div>`;
   let vistas=0;
   for(const sc of secs(l)){
     const todas=deSec(l,sc.id), vis=q?todas.filter(coincide):todas;
@@ -417,11 +419,12 @@ function auto(t){t.style.height='auto';t.style.height=Math.max(36,t.scrollHeight
 
 function accion(l,iid,a,el){const it=l.items[iid];if(!it)return;
   if(a==='sel'){S.sel.has(iid)?S.sel.delete(iid):S.sel.add(iid);return pintar();}
-  if(a==='hecho'||a==='cancelado'){if(!lleno(it))return;it.est=it.est===a?'':a;tocar(l,it);return pintar();}
+  if(a==='hecho'||a==='cancelado'){if(!lleno(it))return;it.est=it.est===a?'':a;tocar(l,it);if(l.auto)acomodar(l);return pintar();}
   if(a==='cat'){const r=el.getBoundingClientRect();S.modal={tipo:'cat',lid:l.id,iid,x:r.left,y:r.bottom,yt:r.top};return pintar();}
   if(a==='nota'){const n=it.nota||{};S.modal={tipo:'nota',lid:l.id,iid,txt:n.txt||'',imgs:(n.imgs||[]).slice()};return pintar();}
 }
 function herramienta(l,h){
+  if(h==='auto'){l.auto=!l.auto;l.t=Date.now();if(l.auto)acomodar(l);cambio(l);pintar();return toast(l.auto?'Pendientes arriba, hechas y canceladas al final':'Orden libre');}
   if(h==='ordenar'){S.modal={tipo:'ordenar',lid:l.id};return pintar();}
   const sel=[...S.sel].filter(id=>l.items[id]);
   if(!sel.length)return toast('Selecciona ítems con el círculo');
@@ -430,9 +433,13 @@ function herramienta(l,h){
     S.sel.clear();cambio(l);pintar();
     toast(sel.length+(sel.length===1?' borrado':' borrados'),'Deshacer',()=>{for(const it of copia){it.t=Date.now();l.items[it.id]=it;delete l.quit[it.id];}cambio(l);pintar();});return;}
   if(h==='hecho'||h==='cancelado'){const todos=sel.every(id=>l.items[id].est===h);
-    for(const id of sel){const it=l.items[id];if(!lleno(it))continue;it.est=todos?'':h;it.t=Date.now();}S.sel.clear();cambio(l);return pintar();}
+    for(const id of sel){const it=l.items[id];if(!lleno(it))continue;it.est=todos?'':h;it.t=Date.now();}if(l.auto)acomodar(l);S.sel.clear();cambio(l);return pintar();}
   if(h==='mover'){S.modal={tipo:'mover',lid:l.id};pintar();}
 }
+/* Pendientes arriba, luego hechas, al final canceladas y los espacios vacíos (en tableros, dentro de cada sección). */
+function acomodar(l){const r=e=>e==='hecho'?1:e==='cancelado'?2:0;
+  const g=arr=>[...arr.filter(lleno).sort((a,b)=>r(a.est)-r(b.est)||a.o-b.o),...arr.filter(x=>!lleno(x))];
+  renumerar(l,esTab(l)?secs(l).flatMap(sc=>g(deSec(l,sc.id))):g(items(l)));}
 function ordenar(l,c){
   if(c==='sel'){const ll=items(l).filter(lleno);const todos=ll.length&&ll.every(it=>S.sel.has(it.id));S.sel.clear();if(!todos)ll.forEach(it=>S.sel.add(it.id));return pintar();}
   const o=S.orden[l.id]||{}; const d=o.c===c?-o.d:1; S.orden[l.id]={c,d};
