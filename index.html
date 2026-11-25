@@ -153,7 +153,7 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.6';
+const VERSION='1.7';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -177,6 +177,7 @@ const SVG={
   ordenar:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V4M3 8l4-4 4 4M17 4v16M13 16l4 4 4-4"/></svg>',
   filtro:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5z"/></svg>',
   arr:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>',
+  copiar:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></svg>',
   flecha:'<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   img:'<svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   engr:'<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
@@ -377,7 +378,7 @@ function pintarLista(l){
       <button class="mas${conNota(it)?' on':''}" data-a="nota" aria-label="Nota">${SVG.mas}</button>
       ${q?'<span></span>':`<span class="arr" aria-label="Arrastrar para mover">${SVG.arr}</span>`}</div>`;}
   if(q&&!vis.length)h+=`<div class="vacio">Nada con esa búsqueda.</div>`;
-  h+=`<div class="pie-l"><button class="btn" id="bMas10">${SVG.masG.replace(/30/g,'20')} 10</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?'<span style="color:var(--acento);font-size:14px">compartida</span>':''}</button></div>`;
+  h+=`<div class="pie-l"><button class="btn" id="bMas10">${SVG.masG.replace(/30/g,'20')} 10</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?'<span style="color:var(--acento);font-size:14px">compartida</span>':''}</button></div>`;
   const m=$('#main'); m.innerHTML=h;
   const nm=$('#nombre'); nm.oninput=()=>{l.nombre=nm.value;l.t=Date.now();cambio(l);};
   nm.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const t=m.querySelector('.tx');t&&t.focus();}};
@@ -392,6 +393,7 @@ function pintarLista(l){
   arrastre(l,m);
   $('#bMas10').onclick=()=>{agregarVacios(l,10);cambio(l);pintar();setTimeout(()=>scrollTo(0,document.body.scrollHeight),50);};
   $('#bComp').onclick=()=>{S.modal={tipo:'compartir',lid:l.id};pintar();};
+  $('#bCopiar').onclick=()=>copiarLista(l);
 }
 function pintarTablero(l){
   barraArriba(true,'Buscar en el tablero'); tomarFoto(l);
@@ -413,7 +415,7 @@ function pintarTablero(l){
     if(!pl)h+=`<div class="tabl">${vis.map((it,i)=>tarjeta(it,i)).join('')}${q?'':`<button class="tj-mas" data-mt>${SVG.masG.replace(/30/g,'20')} tarjeta</button>`}</div>`;
     h+='</div>';}
   if(q&&!vistas)h+=`<div class="vacio">Nada con esa búsqueda.</div>`;
-  h+=`<div class="pie-l"><button class="btn" id="bSec">${SVG.masG.replace(/30/g,'20')} sección</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?'<span style="color:var(--acento);font-size:14px">compartido</span>':''}</button></div>`;
+  h+=`<div class="pie-l"><button class="btn" id="bSec">${SVG.masG.replace(/30/g,'20')} sección</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?'<span style="color:var(--acento);font-size:14px">compartido</span>':''}</button></div>`;
   const m=$('#main'); m.innerHTML=h;
   const nm=$('#nombre'); nm.oninput=()=>{l.nombre=nm.value;l.t=Date.now();cambio(l);};
   nm.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const t=m.querySelector('.sec-n');t&&t.focus();}};
@@ -434,6 +436,7 @@ function pintarTablero(l){
   m.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>herramienta(l,b.dataset.h));
   $('#bSec').onclick=()=>{const sc=nuevaSec(l,'');tarjetas(l,sc.id,2);cambio(l);S.focoSec=sc.id;pintar();setTimeout(()=>scrollTo(0,document.body.scrollHeight),80);};
   $('#bComp').onclick=()=>{S.modal={tipo:'compartir',lid:l.id};pintar();};
+  $('#bCopiar').onclick=()=>copiarLista(l);
 }
 function numerar(l,it){if(lleno(it)&&!it.n)it.n=Math.max(0,...items(l).map(x=>x.n||0))+1;}
 /* Arrastrar con los puntos de la derecha para subir o bajar una fila. */
@@ -587,6 +590,11 @@ function enlace(c){return location.origin+location.pathname+'#u='+c.id+'.'+c.key
 async function enviar(titulo,texto){try{if(navigator.share){await navigator.share({title:titulo,text:texto});return;}}catch(e){if(e&&e.name==='AbortError')return;}
   try{await navigator.clipboard.writeText(texto);toast('Copiado: pégalo en WhatsApp');}catch(e){open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');}}
 const lineaTxt=it=>(it.est==='hecho'?'✓ ':it.est==='cancelado'?'✗ ':'○ ')+(it.cat?it.cat+' ':'')+it.txt+(it.sub?' ('+it.sub+')':'')+(it.nota&&it.nota.txt?' — '+it.nota.txt.replace(/\n/g,' '):'');
+/* Solo los textos, con guion para que WhatsApp los muestre como viñetas; sin las canceladas. */
+async function copiarLista(l){const t=items(l).filter(it=>lleno(it)&&it.est!=='cancelado').map(it=>'- '+it.txt.trim()).join('\n');
+  if(!t)return toast('No hay nada para copiar');
+  try{await navigator.clipboard.writeText(t);}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(_){}a.remove();}
+  toast('Lista copiada');}
 function textoLista(l){if(esTab(l))return (l.nombre||'Tablero')+'\n'+secs(l).map(sc=>'\n'+(sc.nombre||'Sección').toUpperCase()+'\n'+deSec(l,sc.id).filter(lleno).map(lineaTxt).join('\n')).join('\n');return (l.nombre||'Lista')+'\n'+items(l).filter(lleno).map(it=>(it.est==='hecho'?'✓ ':it.est==='cancelado'?'✗ ':'○ ')+(it.cat?it.cat+' ':'')+it.txt+(it.nota&&it.nota.txt?' — '+it.nota.txt.replace(/\n/g,' '):'')).join('\n');}
 async function compartir(l,op){
   if(op==='copia'){S.modal=null;pintar();return enviar(l.nombre,textoLista(l));}
