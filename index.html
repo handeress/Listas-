@@ -38,7 +38,11 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 .herr button.apag{opacity:.3}
 .herr .sep{flex:1}
 .herr button.on{color:var(--acento);background:#f6e3d8}
-.g{display:grid;grid-template-columns:34px 38px minmax(0,1fr) 40px 40px 36px;align-items:center}
+.g{display:grid;grid-template-columns:22px 32px 36px minmax(0,1fr) 36px 36px 32px 28px;align-items:center}
+.num{font-size:12px;color:var(--gris);text-align:right;padding-right:2px}
+.arr{height:40px;display:grid;place-items:center;color:#b3ab9e;touch-action:none;cursor:grab}
+.it{position:relative;transition:transform .12s}
+.it.arrastra{z-index:3;background:var(--hoja);box-shadow:0 6px 18px rgba(0,0,0,.18);transition:none}
 .orden{height:30px;color:#a49c8f}
 .orden button{height:30px;display:grid;place-items:center;color:#b3ab9e}
 .orden button.on{color:var(--acento)}
@@ -138,7 +142,7 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.4';
+const VERSION='1.5';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -161,6 +165,7 @@ const SVG={
   chev:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   ordenar:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V4M3 8l4-4 4 4M17 4v16M13 16l4 4 4-4"/></svg>',
   filtro:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5z"/></svg>',
+  arr:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>',
   flecha:'<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   img:'<svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   engr:'<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
@@ -340,6 +345,8 @@ function pintarInicio(){
 
 function pintarLista(l){
   tomarFoto(l);
+  {let mx=Math.max(0,...items(l).map(x=>x.n||0)),hubo=false;for(const it of items(l))if(lleno(it)&&!it.n){it.n=++mx;it.t=Date.now();hubo=true;}
+   if(hubo){if(!l.recibida&&!M.pend.includes(l.id))M.pend.push(l.id);if(l.comp&&!M.pendC.includes(l.id))M.pendC.push(l.id);guardar();}}
   barraArriba(true,'Buscar en la lista');
   const q=S.q.trim().toLowerCase();
   let vis=items(l); if(q)vis=vis.filter(it=>lleno(it)&&((it.txt||'')+' '+((it.nota||{}).txt||'')).toLowerCase().includes(q));
@@ -347,15 +354,17 @@ function pintarLista(l){
   const fl=c=>`<button class="${o.c===c?'on':''}${c==='txt'?' izq':''}" data-or="${c}" aria-label="Ordenar"><span style="display:block;transform:rotate(${o.c===c&&o.d<0?180:0}deg)">${SVG.flecha}</span></button>`;
   let h=`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre de la lista" ${l.recibida&&l.comp&&!l.comp.revocada?'':''}>`
    +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button></div>`
-   +`<div class="g orden"><button data-or="sel" aria-label="Seleccionar todo"><span class="circ" style="width:16px;height:16px;border-width:1.5px;${ns&&ns===items(l).filter(lleno).length?'background:var(--acento);border-color:var(--acento)':''}"></span></button>${fl('cat')}${fl('txt')}${fl('hecho')}${fl('cancelado')}<span></span></div>`;
+   +`<div class="g orden">${fl('num')}<button data-or="sel" aria-label="Seleccionar todo"><span class="circ" style="width:16px;height:16px;border-width:1.5px;${ns&&ns===items(l).filter(lleno).length?'background:var(--acento);border-color:var(--acento)':''}"></span></button>${fl('cat')}${fl('txt')}${fl('hecho')}${fl('cancelado')}<span></span><span></span></div>`;
   for(const it of vis){const sel=S.sel.has(it.id);
     h+=`<div class="g it ${it.est}" data-i="${esc(it.id)}">
+      <span class="num">${lleno(it)&&it.n?it.n:''}</span>
       <button class="sel${sel?' on':''}" data-a="sel" aria-label="Seleccionar"><span class="circ"></span></button>
       <button class="cat" data-a="cat" aria-label="Categoría">${it.cat?`<span>${it.cat}</span>`:'<i class="hueco"></i>'}</button>
       <textarea class="tx" rows="1" data-a="tx" enterkeyhint="next">${esc(it.txt)}</textarea>
       <button class="ok${it.est==='hecho'?' on':''}" data-a="hecho" aria-label="Hecho">${SVG.ok}</button>
       <button class="no${it.est==='cancelado'?' on':''}" data-a="cancelado" aria-label="Cancelado">${SVG.no}</button>
-      <button class="mas${conNota(it)?' on':''}" data-a="nota" aria-label="Nota">${SVG.mas}</button></div>`;}
+      <button class="mas${conNota(it)?' on':''}" data-a="nota" aria-label="Nota">${SVG.mas}</button>
+      ${q?'<span></span>':`<span class="arr" aria-label="Arrastrar para mover">${SVG.arr}</span>`}</div>`;}
   if(q&&!vis.length)h+=`<div class="vacio">Nada con esa búsqueda.</div>`;
   h+=`<div class="pie-l"><button class="btn" id="bMas10">${SVG.masG.replace(/30/g,'20')} 10</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?'<span style="color:var(--acento);font-size:14px">compartida</span>':''}</button></div>`;
   const m=$('#main'); m.innerHTML=h;
@@ -363,12 +372,13 @@ function pintarLista(l){
   nm.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const t=m.querySelector('.tx');t&&t.focus();}};
   if(S.foco==='nombre'){S.foco=null;setTimeout(()=>nm.focus(),60);}
   m.querySelectorAll('.tx').forEach(t=>{auto(t);
-    t.oninput=()=>{const it=l.items[t.closest('[data-i]').dataset.i];it.txt=t.value.replace(/\n/g,' ');tocar(l,it);auto(t);};
+    t.oninput=()=>{const it=l.items[t.closest('[data-i]').dataset.i];it.txt=t.value.replace(/\n/g,' ');numerar(l,it);tocar(l,it);auto(t);};
     t.onblur=()=>{const it=l.items[t.closest('[data-i]').dataset.i];if(!it||!lleno(it))return;const todos=items(l);const ult=todos.filter(lleno).filter(x=>x!==it).pop();const hayHueco=todos.some(x=>!lleno(x)&&x.o<it.o);if(hayHueco){const resto=todos.filter(x=>x!==it);const i=ult?resto.indexOf(ult)+1:0;resto.splice(i,0,it);renumerar(l,resto);cambio(l);repintar=true;}};
     t.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const fila=t.closest('[data-i]').nextElementSibling;const n=fila&&fila.querySelector&&fila.querySelector('.tx');if(n)n.focus();else t.blur();}};});
   m.querySelectorAll('[data-a]').forEach(b=>{if(b.tagName==='TEXTAREA')return;b.onclick=()=>accion(l,b.closest('[data-i]').dataset.i,b.dataset.a,b);});
   m.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>herramienta(l,b.dataset.h));
   m.querySelectorAll('[data-or]').forEach(b=>b.onclick=()=>ordenar(l,b.dataset.or));
+  arrastre(l,m);
   $('#bMas10').onclick=()=>{agregarVacios(l,10);cambio(l);pintar();setTimeout(()=>scrollTo(0,document.body.scrollHeight),50);};
   $('#bComp').onclick=()=>{S.modal={tipo:'compartir',lid:l.id};pintar();};
 }
@@ -401,7 +411,7 @@ function pintarTablero(l){
   const campos=()=>[...m.querySelectorAll('.sec-n,.tx,.tj-sub')];
   const sigue=el=>{const c=campos();const n=c[c.indexOf(el)+1];if(n)n.focus();else el.blur();};
   m.querySelectorAll('.tx').forEach(t=>{auto(t);
-    t.oninput=()=>{const it=l.items[t.closest('[data-i]').dataset.i];it.txt=t.value.replace(/\n/g,' ');tocar(l,it);auto(t);};
+    t.oninput=()=>{const it=l.items[t.closest('[data-i]').dataset.i];it.txt=t.value.replace(/\n/g,' ');numerar(l,it);tocar(l,it);auto(t);};
     t.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();sigue(t);}};});
   m.querySelectorAll('.tj-sub').forEach(t=>{t.oninput=()=>{const it=l.items[t.closest('[data-i]').dataset.i];it.sub=t.value;tocar(l,it);};t.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();sigue(t);}};});
   m.querySelectorAll('.sec').forEach(d=>{const sc=l.secs[d.dataset.s];const i=d.querySelector('.sec-n');
@@ -415,6 +425,20 @@ function pintarTablero(l){
   $('#bSec').onclick=()=>{const sc=nuevaSec(l,'');tarjetas(l,sc.id,2);cambio(l);S.focoSec=sc.id;pintar();setTimeout(()=>scrollTo(0,document.body.scrollHeight),80);};
   $('#bComp').onclick=()=>{S.modal={tipo:'compartir',lid:l.id};pintar();};
 }
+function numerar(l,it){if(lleno(it)&&!it.n)it.n=Math.max(0,...items(l).map(x=>x.n||0))+1;}
+/* Arrastrar con los puntos de la derecha para subir o bajar una fila. */
+function arrastre(l,m){m.querySelectorAll('.arr').forEach(h=>{h.onpointerdown=e=>{
+  e.preventDefault();const fila=h.closest('.it'),filas=[...m.querySelectorAll('.it')],i0=filas.indexOf(fila);
+  const centros=filas.map(f=>{const r=f.getBoundingClientRect();return r.top+scrollY+r.height/2;}),alto=fila.getBoundingClientRect().height,y0=e.pageY;
+  let dest=i0,tm=null,ultY=e.clientY;fila.classList.add('arrastra');try{h.setPointerCapture(e.pointerId);}catch(_){}
+  const mover=()=>{const dy=ultY+scrollY-y0,c=centros[i0]+dy;fila.style.transform=`translateY(${dy}px)`;
+    dest=centros.filter((x,j)=>j!==i0&&x<c).length;
+    filas.forEach((f,j)=>{if(f===fila)return;let sh=0;if(i0<dest&&j>i0&&j<=dest)sh=-alto;if(i0>dest&&j<i0&&j>=dest)sh=alto;f.style.transform=sh?`translateY(${sh}px)`:'';});};
+  h.onpointermove=ev=>{ultY=ev.clientY;mover();clearInterval(tm);if(ultY<110||ultY>innerHeight-70)tm=setInterval(()=>{scrollBy(0,ultY<110?-10:10);mover();},30);};
+  h.onpointerup=h.onpointercancel=()=>{clearInterval(tm);h.onpointermove=h.onpointerup=h.onpointercancel=null;
+    if(dest!==i0){const ids=filas.map(f=>f.dataset.i);const[x]=ids.splice(i0,1);ids.splice(dest,0,x);const todos=ids.map(id=>l.items[id]);
+      const resto=items(l).filter(it=>!ids.includes(it.id));renumerar(l,[...todos,...resto]);cambio(l);}
+    pintar();};};});}
 function auto(t){t.style.height='auto';t.style.height=Math.max(36,t.scrollHeight+1)+'px';}
 
 function accion(l,iid,a,el){const it=l.items[iid];if(!it)return;
@@ -445,7 +469,7 @@ function ordenar(l,c){
   const o=S.orden[l.id]||{}; const d=o.c===c?-o.d:1; S.orden[l.id]={c,d};
   const idx=e=>{const i=CATS.findIndex(x=>x[0]===e);return i<0?999:i;};
   const grupo=arr=>{const llenos=arr.filter(lleno),vacios=arr.filter(it=>!lleno(it));
-  const k={cat:it=>idx(it.cat),txt:it=>(it.txt||'').toLowerCase(),hecho:it=>it.est==='hecho'?0:1,cancelado:it=>it.est==='cancelado'?0:1}[c];
+  const k={num:it=>it.n||1e9,cat:it=>idx(it.cat),txt:it=>(it.txt||'').toLowerCase(),hecho:it=>it.est==='hecho'?0:1,cancelado:it=>it.est==='cancelado'?0:1}[c];
   llenos.sort((a,b)=>{const x=k(a),y=k(b);const r=typeof x==='number'?x-y:x.localeCompare(y,'es');return r*d||(a.o-b.o);});return[...llenos,...vacios];};
   renumerar(l,esTab(l)?secs(l).flatMap(sc=>grupo(deSec(l,sc.id))):grupo(items(l))); cambio(l); pintar();
 }
