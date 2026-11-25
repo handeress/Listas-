@@ -14,6 +14,12 @@ Listas de chequeo personales de Andrés: mercado, herramientas para llevar, comp
 - Botones con selección: borrar (con deshacer), marcar hecho, marcar cancelado, mover a otra lista.
 - **+10** agrega espacios. Compartir: «Trabajar juntos» (enlace sincronizado), «Enviar solo una copia» (texto), «Dejar de compartir».
 
+## Tableros (segundo tipo)
+
+Se crean con el **+ cuadrado** del inicio (el redondo crea listas). Tienen secciones con título editable y plegable, y tarjetas en 2 columnas (más en el PC): círculo de selección, + de nota, ícono grande, nombre, detalle corto, ✓ y ✕. Hay «+ tarjeta» al final de cada sección y «+ sección» al final. Mover sirve para cambiar de sección o pasar a otra lista o tablero. La flecha ↑↓ ordena cada sección. Una sección sin tarjetas llenas se puede quitar con la ✕ roja.
+
+En el archivo: `"tipo":"tablero"`, `"secs":{"<id>":{"id","nombre","o","t"}}` y cada ítem lleva `"sec"` y `"sub"` (detalle). Claude puede mandar un tablero por el buzón: `{"tipo":"tablero","nombre":"…","secciones":[{"nombre":"…","items":[{"txt":"…","cat":"🔦","sub":"…"}]}]}`.
+
 ## Formato de una lista (`listas-personales/<id>.json`, lo escribe la app)
 
 ```json
@@ -38,4 +44,5 @@ Subir `VERSION` en index.html y `CACHE` en sw.js en cada cambio. Para actualizar
 
 - 1.0 (24/11/2026): listas con selección, categoría, hecho, cancelado y nota; ordenar, mover, +10, buscar, compartir cifrado, sin señal, buzón de Claude.
 - 1.1 (24/11/2026): engranaje para Ajustes (naranja = por enviar, rojo = error), ✓ guardar y ✕ descartar los cambios desde que se abrió la lista, línea bajo cada texto, filas más juntas, fondo verde en las hechas.
+- 1.3 (24/11/2026): tableros de tarjetas por secciones; 40 íconos.
 - 1.2 (24/11/2026): hechas en taupe claro; al abrir la app entra a la última lista usada.
