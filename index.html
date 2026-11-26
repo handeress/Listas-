@@ -140,20 +140,19 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 #toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--tinta);color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;display:flex;gap:14px;align-items:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:40;max-width:92vw}
 #toast.on{opacity:1;pointer-events:auto}
 #toast button{color:#fdba74;font-weight:700}
-#instBar{display:none;gap:10px;align-items:center;margin:4px 10px 6px;padding:10px 12px;background:var(--hoja);border:1px solid var(--acento);border-radius:12px}
 </style>
 </head>
 <body>
 <div class="top" id="top"></div>
-<div id="instBar"><span style="flex:1">Instala Listas en la pantalla del celular.</span><button class="btn pri" id="bInst" style="background:var(--acento);border-color:var(--acento)">Instalar</button></div>
-<script>(function(){let ev=null;const ver=v=>{const b=document.getElementById("instBar");if(b)b.style.display=v?"flex":"none";};addEventListener("beforeinstallprompt",e=>{e.preventDefault();ev=e;ver(true);});addEventListener("appinstalled",()=>{ev=null;ver(false);});document.addEventListener("click",async e=>{if(e.target&&e.target.id==="bInst"&&ev){ev.prompt();try{await ev.userChoice;}catch(_){}ev=null;ver(false);}});})();</script>
+<script>/* Instalar: sin aviso; el botón está en Ajustes y solo sale si el navegador lo permite. */
+window.instEv=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();window.instEv=e;const b=document.getElementById("bInst");if(b)b.style.display="";});addEventListener("appinstalled",()=>{window.instEv=null;});</script>
 <main id="main"></main>
 <div id="capa"></div>
 <div id="toast"></div>
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.8';
+const VERSION='1.9';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -192,7 +191,7 @@ const demo=new URLSearchParams(location.search).has('demo');
 /* ---------- Estado ---------- */
 let L={};                       // listas por id
 let M={shas:{},pend:[],pendC:[],tok:'',tokC:''};  // meta local
-const S={pleg:new Set((()=>{try{return JSON.parse(localStorage.getItem('listas_pleg')||'[]');}catch(e){return[];}})()),vista:'inicio',lista:null,q:'',sel:new Set(),modal:null,zoom:null,orden:{}};
+const S={estC:{},pleg:new Set((()=>{try{return JSON.parse(localStorage.getItem('listas_pleg')||'[]');}catch(e){return[];}})()),vista:'inicio',lista:null,q:'',sel:new Set(),modal:null,zoom:null,orden:{}};
 let estadoSync='', claseSync='', ocupado=false, tSync, tGuardar, repintar=false;
 
 /* ---------- Almacenamiento local (IndexedDB) ---------- */
@@ -243,7 +242,7 @@ const b64txt=t=>b64bytes(new TextEncoder().encode(t));
 const txt64=b=>new TextDecoder().decode(bytes64(b));
 const b64u=u8=>b64bytes(u8).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const ub64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return bytes64(s);};
-function api(cfg,tok,ruta,opt){opt=opt||{};return fetch('https://api.github.com/repos/'+cfg.dueno+'/'+cfg.repo+'/contents/'+ruta.split('/').map(encodeURIComponent).join('/'),
+function api(cfg,tok,ruta,opt){opt=opt||{};return fetch('https://api.github.com/repos/'+cfg.dueno+'/'+cfg.repo+'/contents/'+ruta.split('/').map(encodeURIComponent).join('/')+((opt.method||'GET')==='GET'?'?_='+Date.now():''),
   {method:opt.method||'GET',body:opt.body,cache:'no-store',headers:{'Authorization':'Bearer '+tok,'Accept':opt.raw?'application/vnd.github.raw+json':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});}
 function falla(r,cfg){if(r.status===401)return'la llave no sirve o venció';if(r.status===403||r.status===404)return'la llave no tiene permiso sobre '+cfg.repo;return'GitHub respondió '+r.status;}
 async function leer(cfg,tok,ruta){const r=await api(cfg,tok,ruta);if(r.status===404)return{datos:null,sha:undefined};if(!r.ok)throw new Error(falla(r,cfg));const j=await r.json();
@@ -298,14 +297,23 @@ function desdeBuzon(lid,d){if(d.tipo==='tablero'&&Array.isArray(d.secciones)){co
   for(const x of (d.items||[])){const it=nuevoItem(o++);it.txt=typeof x==='string'?x:(x.txt||x.titulo||'');it.cat=x.cat||'';if(x.nota)it.nota={txt:String(x.nota),imgs:[]};l.items[it.id]=it;}
   agregarVacios(l,Math.max(0,10-o)); L[lid]=l; M.pend.push(lid);}
 async function syncCompartidas(){
-  for(const l of Object.values(L)){ const c=l.comp; if(!c||c.revocada||l.borrada&&l.recibida)continue;
+  let fallo=null;
+  for(const l0 of Object.values(L)){ if(!l0.comp||l0.comp.revocada||l0.borrada&&l0.recibida)continue;
+    try{ await syncUnaCompartida(l0.id); S.estC[l0.id]={t:Date.now()}; }
+    catch(e){ S.estC[l0.id]={t:Date.now(),err:e.message}; fallo=e; } }
+  if(M.tok&&M.pend.length)await syncPropias();
+  if(fallo)throw fallo;
+}
+async function syncUnaCompartida(id){
+  for(let intento=0;intento<3;intento++){ const l=L[id], c=l.comp;
     const ruta=GC.carpeta+'/'+c.id+'.json'; const d=await leer(GC,c.tok,ruta); let rem=null;
-    if(d.datos&&d.datos.revocada){ if(l.recibida){c.revocada=true;toast('«'+(l.nombre||'Lista')+'» ya no se comparte; queda tu copia.');} continue; }
+    if(d.datos&&d.datos.revocada){ if(l.recibida){c.revocada=true;toast('«'+(l.nombre||'Lista')+'» ya no se comparte; queda tu copia.');} return; }
     if(d.datos&&d.datos.ct){ try{rem=await descifrar(c.key,d.datos);}catch(e){throw new Error('no pude abrir la lista compartida');} }
     if(rem){ const antes=JSON.stringify(paraCompartir(l)); const f=fusionar(l,Object.assign({},rem,{comp:l.comp})); L[l.id]=f; if(JSON.stringify(paraCompartir(f))!==antes&&!f.recibida&&!M.pend.includes(f.id))M.pend.push(f.id); }
-    if(M.pendC.includes(l.id)||!d.datos){ const w=await escribir(GC,c.tok,ruta,await cifrar(c.key,paraCompartir(L[l.id])),d.sha,'Lista compartida');
-      if(w.conflicto)continue; M.pendC=M.pendC.filter(x=>x!==l.id); } }
-  if(M.tok&&M.pend.length)await syncPropias();
+    if(!(M.pendC.includes(l.id)||!d.datos))return;
+    const w=await escribir(GC,c.tok,ruta,await cifrar(c.key,paraCompartir(L[l.id])),d.sha,'Lista compartida');
+    if(!w.conflicto){M.pendC=M.pendC.filter(x=>x!==l.id);return;} }
+  throw new Error('la otra persona estaba guardando al mismo tiempo; se reintenta');
 }
 
 /* ---------- Pintar ---------- */
@@ -378,7 +386,7 @@ function pintarLista(l){
       <button class="mas${conNota(it)?' on':''}" data-a="nota" aria-label="Nota">${SVG.mas}</button>
       ${q?'<span></span>':`<span class="arr" aria-label="Arrastrar para mover">${SVG.arr}</span>`}</div>`;}
   if(q&&!vis.length)h+=`<div class="vacio">Nada con esa búsqueda.</div>`;
-  h+=`<div class="pie-l"><button class="btn" id="bMas10">${SVG.masG.replace(/30/g,'20')} 10</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?'<span style="color:var(--acento);font-size:14px">compartida</span>':''}</button></div>`;
+  h+=`<div class="pie-l"><button class="btn" id="bMas10">${SVG.masG.replace(/30/g,'20')} 10</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?estadoComp(l,'compartida'):''}</button></div>`;
   const m=$('#main'); m.innerHTML=h;
   const nm=$('#nombre'); nm.oninput=()=>{l.nombre=nm.value;l.t=Date.now();cambio(l);};
   nm.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const t=m.querySelector('.tx');t&&t.focus();}};
@@ -415,7 +423,7 @@ function pintarTablero(l){
     if(!pl)h+=`<div class="tabl">${vis.map((it,i)=>tarjeta(it,i)).join('')}${q?'':`<button class="tj-mas" data-mt>${SVG.masG.replace(/30/g,'20')} tarjeta</button>`}</div>`;
     h+='</div>';}
   if(q&&!vistas)h+=`<div class="vacio">Nada con esa búsqueda.</div>`;
-  h+=`<div class="pie-l"><button class="btn" id="bSec">${SVG.masG.replace(/30/g,'20')} sección</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?'<span style="color:var(--acento);font-size:14px">compartido</span>':''}</button></div>`;
+  h+=`<div class="pie-l"><button class="btn" id="bSec">${SVG.masG.replace(/30/g,'20')} sección</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?estadoComp(l,'compartido'):''}</button></div>`;
   const m=$('#main'); m.innerHTML=h;
   const nm=$('#nombre'); nm.oninput=()=>{l.nombre=nm.value;l.t=Date.now();cambio(l);};
   nm.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const t=m.querySelector('.sec-n');t&&t.focus();}};
@@ -452,6 +460,8 @@ function arrastre(l,m){m.querySelectorAll('.arr').forEach(h=>{h.onpointerdown=e=
     if(dest!==i0){const ids=filas.map(f=>f.dataset.i);const[x]=ids.splice(i0,1);ids.splice(dest,0,x);const todos=ids.map(id=>l.items[id]);
       const resto=items(l).filter(it=>!ids.includes(it.id));renumerar(l,[...todos,...resto]);cambio(l);}
     pintar();};};});}
+function estadoComp(l,txt){const e=S.estC[l.id];const h=e&&new Date(e.t).toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit'});
+  return `<span style="font-size:13px;line-height:1.2;text-align:left;color:${e&&e.err?'var(--no)':'var(--acento)'}">${txt}<br><span style="color:${e&&e.err?'var(--no)':'var(--gris)'};font-weight:400">${!e?'conectando…':e.err?'sin sincronizar':'al día '+h}</span></span>`;}
 function auto(t){t.style.height='auto';t.style.height=Math.max(t.closest('.tj')?28:36,t.scrollHeight+1)+'px';}
 
 function accion(l,iid,a,el){const it=l.items[iid];if(!it)return;
@@ -531,7 +541,9 @@ function pintarCapa(){
       +f('cat','Categoría')+f('txt','Nombre')+f('hecho','Hechas primero')+f('cancelado','Canceladas primero')+`<button class="opc" data-oc="sel" style="color:var(--gris)">Seleccionar todo</button></div></div>`;}
   else if(md&&md.tipo==='compartir'){
     const l=L[md.lid],cp=l.comp&&!l.comp.revocada;
+    const ec=S.estC[l.id];
     h=`<div class="fondo" data-cerrar></div><div class="hojaV"><div class="cab"><button class="ic x" data-cerrar>${SVG.xG}</button><span class="t">Compartir «${esc(l.nombre||'Sin nombre')}»</span><span class="ic"></span></div><div class="cuerpo">`
+      +(cp&&ec&&ec.err?`<div class="aviso">No se pudo sincronizar: ${esc(ec.err)}.</div>`:'')
       +(cp?`<button class="opc" data-cp="enlace">Enviar el enlace otra vez<small>Quien lo abra trabaja esta lista contigo y ven los cambios del otro.</small></button>`
           +`<button class="opc" data-cp="copia">Enviar solo una copia<small>Texto de la lista, sin sincronizar.</small></button>`
           +`<button class="opc" data-cp="dejar" style="color:var(--no)">${l.recibida?'Salir de la lista compartida<small>Te quedas con tu copia; ya no ves los cambios.</small>':'Dejar de compartir<small>La otra persona se queda con su copia, sin cambios nuevos.</small>'}</button>`
@@ -610,7 +622,7 @@ async function compartir(l,op){
     l.comp={id:nid()+nid(),key,tok:M.tokC,mia:true};l.t=Date.now();
     try{await escribir(GC,M.tokC,GC.carpeta+'/'+l.comp.id+'.json',await cifrar(key,paraCompartir(l)),undefined,'Lista compartida');}
     catch(e){l.comp=null;return toast('No se pudo compartir: '+e.message);}
-    cambio(l);S.modal=null;pintar();enviar(l.nombre,'Lista «'+(l.nombre||'Lista')+'»: '+enlace(l.comp));}
+    cambio(l);await iput('L',L);await iput('M',M);S.estC[l.id]={t:Date.now()};S.modal=null;pintar();enviar(l.nombre,'Lista «'+(l.nombre||'Lista')+'»: '+enlace(l.comp));}
 }
 async function abrirEnlace(){const m=location.hash.match(/^#u=([\w-]+)\.([\w-]+)\.([\w]+)$/);if(!m)return;
   history.replaceState(null,'',location.pathname+location.search);
@@ -631,12 +643,13 @@ function pintarAjustes(){
    <input class="campo" id="tokC" type="password" placeholder="${M.tokC?'Hay una llave guardada':'github_pat_…'}">
    <p><button class="btn pri" id="bTokC">Guardar</button></p>
    <p class="estado">Crear esta llave: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → nueva llave</a> → Only select repositories → Listas-compartidas → Contents: Read and write. Va dentro de los enlaces que compartes.</p>
-   <p><button class="btn" id="bSync">Sincronizar ahora</button></p>
+   <p><button class="btn" id="bSync">Sincronizar ahora</button> <button class="btn pri" id="bInst" style="background:var(--acento);border-color:var(--acento);${window.instEv?'':'display:none'}">Instalar en el celular</button></p>
    <p class="estado">Versión ${VERSION} · datos en ${GH.repo}/${GH.carpeta}${demo?' · modo de prueba':''}</p></div>`;
   ponerPunto();
   $('#bTok').onclick=()=>{const v=$('#tok').value.trim();if(!v)return toast('Pega primero la llave');M.tok=v;M.shas={};guardar();toast('Llave guardada');sincronizar().then(pintarSuave);};
   $('#bBit').onclick=async()=>{const v=await llaveBitacora();if(!v)return toast('No encontré la llave de la Bitácora en este navegador');M.tok=v;M.shas={};guardar();toast('Llave de la Bitácora lista');sincronizar().then(pintarSuave);};
   $('#bTokC').onclick=()=>{const v=$('#tokC').value.trim();if(!v)return toast('Pega primero la llave');M.tokC=v;S.avisoC=false;guardar();toast('Llave para compartir guardada');pintar();};
+  $('#bInst').onclick=async()=>{const ev=window.instEv;if(!ev)return toast('Este navegador no la ofrece ahora');ev.prompt();try{await ev.userChoice;}catch(_){}window.instEv=null;$('#bInst').style.display='none';};
   $('#bSync').onclick=()=>sincronizar().then(()=>{pintar();toast(estadoSync);});
 }
 
@@ -645,7 +658,7 @@ function toast(t,acc,fn){const e=$('#toast');e.innerHTML=`<span>${esc(t)}</span>
   if(acc)e.querySelector('button').onclick=()=>{e.classList.remove('on');fn();};clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),acc?5000:2400);}
 addEventListener('online',sincronizar);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sincronizar();});
-setInterval(()=>{if(document.visibilityState==='visible'&&Object.values(L).some(l=>l.comp&&!l.comp.revocada))sincronizar();},15000);
+setInterval(()=>{if(document.visibilityState==='visible'&&Object.values(L).some(l=>l.comp&&!l.comp.revocada))sincronizar();},8000);
 addEventListener('hashchange',async()=>{if(/^#u=/.test(location.hash)){await abrirEnlace();pintar();sincronizar();}});
 
 function datosDemo(){const a=nuevaLista('Viaje de campo',0);let o=0;
