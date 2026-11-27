@@ -44,6 +44,7 @@ Subir `VERSION` en index.html y `CACHE` en sw.js en cada cambio. Para actualizar
 
 - 1.0 (24/11/2026): listas con selección, categoría, hecho, cancelado y nota; ordenar, mover, +10, buscar, compartir cifrado, sin señal, buzón de Claude.
 - 1.1 (24/11/2026): engranaje para Ajustes (naranja = por enviar, rojo = error), ✓ guardar y ✕ descartar los cambios desde que se abrió la lista, línea bajo cada texto, filas más juntas, fondo verde en las hechas.
+- 1.13 (27/11/2026): sin ✓ y ✕ en la barra (se marca en cada fila); quien recibe la lista no tiene caneca ni mover.
 - 1.12 (27/11/2026): quien recibe una lista compartida ve el título arriba (sin atrás, buscar ni ajustes); atrás cierra la app.
 - 1.11 (27/11/2026): en los hechos todo queda en gris claro (texto, íconos en gris, botones opacos); el ✓ queda verde suave.
 - 1.10 (27/11/2026): fondo de los hechos más claro que el fondo de la app (#fcfaf6), en listas y tableros.

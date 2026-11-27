@@ -156,7 +156,7 @@ window.instEv=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault()
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.12';
+const VERSION='1.13';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -381,7 +381,7 @@ function pintarLista(l){
   const ns=S.sel.size, o=S.orden[l.id]||{};
   const fl=c=>`<button class="${o.c===c?'on':''}${c==='txt'?' izq':''}" data-or="${c}" aria-label="Ordenar"><span style="display:block;transform:rotate(${o.c===c&&o.d<0?180:0}deg)">${SVG.flecha}</span></button>`;
   let h=(l.recibida?'':`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre de la lista">`)
-   +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button></div>`
+   +`<div class="herr">${l.recibida?"":`<button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button>`}${l.recibida?"":`<button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button>`}<span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button></div>`
    +`<div class="g orden">${fl('num')}<button data-or="sel" aria-label="Seleccionar todo"><span class="circ" style="width:16px;height:16px;border-width:1.5px;${ns&&ns===items(l).filter(lleno).length?'background:var(--acento);border-color:var(--acento)':''}"></span></button>${fl('cat')}${fl('txt')}${fl('hecho')}${fl('cancelado')}<span></span><span></span></div>`;
   for(const it of vis){const sel=S.sel.has(it.id);
     h+=`<div class="g it ${it.est}" data-i="${esc(it.id)}">
@@ -421,7 +421,7 @@ function pintarTablero(l){
     <div class="tj-v"><button class="ok${it.est==='hecho'?' on':''}" data-a="hecho" aria-label="Hecha">${SVG.ok}</button><button class="no${it.est==='cancelado'?' on':''}" data-a="cancelado" aria-label="Cancelada">${SVG.no}</button></div></div>
     <input class="tj-sub" data-sub value="${esc(it.sub||'')}" placeholder="detalle" enterkeyhint="next"></div>`;
   let h=(l.recibida?'':`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre del tablero">`)
-   +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button><button data-h="ordenar" aria-label="Ordenar">${SVG.ordenar}</button></div>`;
+   +`<div class="herr">${l.recibida?"":`<button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button>`}${l.recibida?"":`<button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover">${SVG.mover}</button>`}<span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button><button data-h="ordenar" aria-label="Ordenar">${SVG.ordenar}</button></div>`;
   let vistas=0;
   for(const sc of secs(l)){
     const todas=deSec(l,sc.id), vis=q?todas.filter(coincide):todas;
