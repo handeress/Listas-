@@ -50,6 +50,10 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 .it{min-height:40px;border-radius:10px;margin:1px 0;transition:background .15s}
 .it .sel,.it .cat,.it .ok,.it .no,.it .mas{height:40px;display:grid;place-items:center}
 .it.hecho{background:#fcfaf6}
+.it.hecho>*:not(.ok),.tj.hecho .tj-a,.tj.hecho .cat,.tj.hecho .no,.tj.hecho .tj-sub{opacity:.45}
+.it.hecho .cat span,.tj.hecho .cat span{filter:grayscale(1)}
+.it.hecho .tx,.tj.hecho .tx{color:#8f877c}
+.it.hecho .ok.on svg,.tj.hecho .ok.on svg{opacity:.6}
 .circ{width:22px;height:22px;border-radius:50%;border:2px solid #b8b0a3;display:grid;place-items:center}
 .sel.on .circ{border-color:var(--acento);background:var(--acento)}
 .sel.on .circ::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
@@ -152,7 +156,7 @@ window.instEv=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault()
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.10';
+const VERSION='1.11';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
