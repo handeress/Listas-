@@ -156,7 +156,7 @@ window.instEv=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault()
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.11';
+const VERSION='1.12';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -321,7 +321,7 @@ async function syncUnaCompartida(id){
 }
 
 /* ---------- Pintar ---------- */
-function nivel(){return (S.vista==='inicio'?0:1)+(S.modal?1:0)+(S.zoom?1:0);}
+function nivel(){const rec=S.vista==='lista'&&L[S.lista]&&L[S.lista].recibida;return (S.vista==='inicio'||rec?0:1)+(S.modal?1:0)+(S.zoom?1:0);}
 function syncHist(){const L2=nivel(),n=(history.state&&history.state.n)||0;if(L2>n){for(let i=n+1;i<=L2;i++)history.pushState({n:i},'');}else if(L2===n)history.replaceState({n:L2},'');else history.go(L2-n);}
 addEventListener('popstate',e=>{const n=(e.state&&e.state.n)||0;
   while(nivel()>n){ if(S.zoom)S.zoom=null; else if(S.modal){ if(S.modal.tipo==='nota')guardarNota(); S.modal=null; } else {S.vista='inicio';S.sel.clear();S.q='';S.snapId=null;} }
@@ -345,6 +345,10 @@ function barraArriba(atras,ph){$('#top').innerHTML=(atras?`<button class="ic" id
   $('#bAj').onclick=()=>{S.vista='ajustes';pintar();};
   const q=$('#q');q.oninput=()=>{S.q=q.value;clearTimeout(q._t);q._t=setTimeout(()=>{const p=q.selectionStart;pintar();const n=$('#q');n.focus();try{n.setSelectionRange(p,p);}catch(e){}},250);};}
 
+function barraCompartida(l,ph){
+  $('#top').innerHTML=`<input class="nombre" id="nombre" style="flex:1;min-width:0;padding:6px 8px" value="${esc(l.nombre)}" placeholder="${ph}">`
+    +`<button class="ic x${S.sucio?'':' apag'}" id="bDesc" aria-label="Descartar">${SVG.xG.replace(/28/g,'24')}</button><button class="ic v${S.sucio?'':' apag'}" id="bGuar" aria-label="Guardar">${SVG.okG.replace(/30/g,'26')}</button>`;
+  $('#bDesc').onclick=descartar;$('#bGuar').onclick=guardarLista;S.q='';}
 function pintarInicio(){
   barraArriba(false,'Buscar');
   const q=S.q.trim().toLowerCase();
@@ -371,12 +375,12 @@ function pintarLista(l){
   tomarFoto(l);
   {let mx=Math.max(0,...items(l).map(x=>x.n||0)),hubo=false;for(const it of items(l))if(lleno(it)&&!it.n){it.n=++mx;it.t=Date.now();hubo=true;}
    if(hubo){if(!l.recibida&&!M.pend.includes(l.id))M.pend.push(l.id);if(l.comp&&!M.pendC.includes(l.id))M.pendC.push(l.id);guardar();}}
-  barraArriba(true,'Buscar en la lista');
+  if(l.recibida)barraCompartida(l,'Nombre de la lista');else barraArriba(true,'Buscar en la lista');
   const q=S.q.trim().toLowerCase();
   let vis=items(l); if(q)vis=vis.filter(it=>lleno(it)&&((it.txt||'')+' '+((it.nota||{}).txt||'')).toLowerCase().includes(q));
   const ns=S.sel.size, o=S.orden[l.id]||{};
   const fl=c=>`<button class="${o.c===c?'on':''}${c==='txt'?' izq':''}" data-or="${c}" aria-label="Ordenar"><span style="display:block;transform:rotate(${o.c===c&&o.d<0?180:0}deg)">${SVG.flecha}</span></button>`;
-  let h=`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre de la lista" ${l.recibida&&l.comp&&!l.comp.revocada?'':''}>`
+  let h=(l.recibida?'':`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre de la lista">`)
    +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button></div>`
    +`<div class="g orden">${fl('num')}<button data-or="sel" aria-label="Seleccionar todo"><span class="circ" style="width:16px;height:16px;border-width:1.5px;${ns&&ns===items(l).filter(lleno).length?'background:var(--acento);border-color:var(--acento)':''}"></span></button>${fl('cat')}${fl('txt')}${fl('hecho')}${fl('cancelado')}<span></span><span></span></div>`;
   for(const it of vis){const sel=S.sel.has(it.id);
@@ -408,7 +412,7 @@ function pintarLista(l){
   $('#bCopiar').onclick=()=>copiarLista(l);
 }
 function pintarTablero(l){
-  barraArriba(true,'Buscar en el tablero'); tomarFoto(l);
+  if(l.recibida)barraCompartida(l,'Nombre del tablero');else barraArriba(true,'Buscar en el tablero'); tomarFoto(l);
   const q=S.q.trim().toLowerCase(), ns=S.sel.size;
   const coincide=it=>lleno(it)&&((it.txt||'')+' '+(it.sub||'')+' '+((it.nota||{}).txt||'')).toLowerCase().includes(q);
   const tarjeta=(it,i)=>`<div class="tj ${it.est}${(Math.floor(i/2)+i)%2?' osc':''}" data-i="${esc(it.id)}">
@@ -416,7 +420,7 @@ function pintarTablero(l){
     <div class="tj-m"><button class="cat" data-a="cat" aria-label="Ícono">${it.cat?`<span>${it.cat}</span>`:'<i class="hueco"></i>'}</button>
     <div class="tj-v"><button class="ok${it.est==='hecho'?' on':''}" data-a="hecho" aria-label="Hecha">${SVG.ok}</button><button class="no${it.est==='cancelado'?' on':''}" data-a="cancelado" aria-label="Cancelada">${SVG.no}</button></div></div>
     <input class="tj-sub" data-sub value="${esc(it.sub||'')}" placeholder="detalle" enterkeyhint="next"></div>`;
-  let h=`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre del tablero">`
+  let h=(l.recibida?'':`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre del tablero">`)
    +`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="hecho" class="${ns?'':'apag'}" aria-label="Marcar hecho" style="color:var(--ok)">${SVG.ok.replace('<svg','<svg width="24" height="24"')}</button><button data-h="cancelado" class="${ns?'':'apag'}" aria-label="Marcar cancelado" style="color:var(--no)">${SVG.no.replace('<svg','<svg width="24" height="24"')}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button><button data-h="ordenar" aria-label="Ordenar">${SVG.ordenar}</button></div>`;
   let vistas=0;
   for(const sc of secs(l)){
@@ -503,15 +507,15 @@ function ordenar(l,c){
 
 
 /* Guardar: sincroniza ya y vuelve al inicio. Descartar: deja la lista como estaba al abrirla. */
-function guardarLista(){S.sucio=false;S.snapId=null;clearTimeout(tSync);sincronizar();if(S.vista==='lista')history.back();toast('Guardado');}
-function descartar(){const l=L[S.lista];if(!l||!S.sucio)return history.back();const ahora=Date.now(),sn=S.snap;
-  if(S.nueva){l.borrada=true;l.t=ahora;}
+function guardarLista(){S.sucio=false;S.snapId=null;clearTimeout(tSync);sincronizar();if(S.vista==='lista'&&!(L[S.lista]&&L[S.lista].recibida))history.back();toast('Guardado');pintar();}
+function descartar(){const l=L[S.lista];const quedarse=l&&l.recibida;if(!l||!S.sucio)return quedarse?undefined:history.back();const ahora=Date.now(),sn=S.snap;
+  if(S.nueva&&!quedarse){l.borrada=true;l.t=ahora;}
   else{for(const id of Object.keys(l.items))if(!sn.items[id]){delete l.items[id];l.quit=l.quit||{};l.quit[id]=ahora;}
     for(const[id,it]of Object.entries(sn.items)){l.items[id]=Object.assign({},it,{t:ahora});if(l.quit)delete l.quit[id];}
     if(l.nombre!==sn.nombre){l.nombre=sn.nombre;l.t=ahora;}
     if(sn.secs){for(const id of Object.keys(l.secs||{}))if(!sn.secs[id]){delete l.secs[id];l.quit[id]=ahora;}
       for(const[id,sc]of Object.entries(sn.secs)){l.secs[id]=Object.assign({},sc,{t:ahora});delete l.quit[id];}}}
-  S.sucio=false;S.snapId=null;cambio(l);S.sucio=false;history.back();toast('Cambios descartados');}
+  S.sucio=false;S.snapId=null;cambio(l);S.sucio=false;if(quedarse)pintar();else history.back();toast('Cambios descartados');}
 
 function tomarFoto(l){if(S.snapId!==l.id){S.snapId=l.id;S.snap=JSON.parse(JSON.stringify({nombre:l.nombre,items:l.items,secs:l.secs||null}));S.sucio=false;S.nueva=!items(l).some(lleno)&&!l.nombre;}}
 /* ---------- Ventanas ---------- */
