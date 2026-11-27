@@ -44,6 +44,7 @@ Subir `VERSION` en index.html y `CACHE` en sw.js en cada cambio. Para actualizar
 
 - 1.0 (24/11/2026): listas con selección, categoría, hecho, cancelado y nota; ordenar, mover, +10, buscar, compartir cifrado, sin señal, buzón de Claude.
 - 1.1 (24/11/2026): engranaje para Ajustes (naranja = por enviar, rojo = error), ✓ guardar y ✕ descartar los cambios desde que se abrió la lista, línea bajo cada texto, filas más juntas, fondo verde en las hechas.
+- 1.10 (27/11/2026): fondo de los hechos más claro que el fondo de la app (#fcfaf6), en listas y tableros.
 - 1.9 (26/11/2026): sin aviso de instalar (botón en Ajustes); compartidas: lectura sin caché, reintento inmediato si chocan, revisión cada 8 s y estado visible junto a «compartida».
 - 1.8 (25/11/2026): copiar con ítems seleccionados copia solo esos.
 - 1.7 (24/11/2026): botón copiar (abajo, junto a compartir): solo los textos con «- » para viñetas de WhatsApp, sin las canceladas.
