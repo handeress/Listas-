@@ -39,7 +39,9 @@ main{max-width:720px;margin:0 auto;padding:0 10px 110px}
 .herr .sep{flex:1}
 .herr button.on{color:var(--acento);background:#f6e3d8}
 .g{display:grid;grid-template-columns:22px 32px 36px minmax(0,1fr) 36px 36px 32px 28px;align-items:center}
-.num{font-size:12px;color:var(--gris);text-align:right;padding-right:2px}
+.num{font-size:12px;color:var(--gris);text-align:center}
+.g.sincat{grid-template-columns:22px 32px minmax(0,1fr) 36px 36px 32px 28px}
+.orden.grande{height:36px} .orden.grande svg{width:24px;height:24px}
 .arr{height:40px;display:grid;place-items:center;color:#b3ab9e;touch-action:none;cursor:grab}
 .it{position:relative;transition:transform .12s}
 .it.arrastra{z-index:3;background:var(--hoja);box-shadow:0 6px 18px rgba(0,0,0,.18);transition:none}
@@ -156,7 +158,7 @@ window.instEv=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault()
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <script>
 'use strict';
-const VERSION='1.13';
+const VERSION='1.14';
 const GH={dueno:'handeress',repo:'Bitacora-datos',carpeta:'listas-personales'};   // listas propias (privado, llave de la Bitácora)
 const GC={dueno:'handeress',repo:'Listas-compartidas',carpeta:'c'};                // listas compartidas (privado, cifradas)
 const CATS=[['🛒','Mercado'],['🔧','Herramienta'],['🪵','Madera'],['🔩','Ferretería'],['🎨','Pintura'],
@@ -381,20 +383,20 @@ function pintarLista(l){
   const ns=S.sel.size, o=S.orden[l.id]||{};
   const fl=c=>`<button class="${o.c===c?'on':''}${c==='txt'?' izq':''}" data-or="${c}" aria-label="Ordenar"><span style="display:block;transform:rotate(${o.c===c&&o.d<0?180:0}deg)">${SVG.flecha}</span></button>`;
   let h=(l.recibida?'':`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre de la lista">`)
-   +`<div class="herr">${l.recibida?"":`<button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button>`}${l.recibida?"":`<button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button>`}<span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button></div>`
-   +`<div class="g orden">${fl('num')}<button data-or="sel" aria-label="Seleccionar todo"><span class="circ" style="width:16px;height:16px;border-width:1.5px;${ns&&ns===items(l).filter(lleno).length?'background:var(--acento);border-color:var(--acento)':''}"></span></button>${fl('cat')}${fl('txt')}${fl('hecho')}${fl('cancelado')}<span></span><span></span></div>`;
+   +(l.recibida?'':`<div class="herr"><button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button><button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover a otra lista">${SVG.mover}</button><span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button></div>`)
+   +`<div class="g orden${l.recibida?' sincat grande':''}">${fl('num')}<button data-or="sel" aria-label="Seleccionar todo"><span class="circ" style="width:16px;height:16px;border-width:1.5px;${ns&&ns===items(l).filter(lleno).length?'background:var(--acento);border-color:var(--acento)':''}"></span></button>${l.recibida?'':fl('cat')}${fl('txt')}${fl('hecho')}${fl('cancelado')}<span></span><span></span></div>`;
   for(const it of vis){const sel=S.sel.has(it.id);
-    h+=`<div class="g it ${it.est}" data-i="${esc(it.id)}">
+    h+=`<div class="g it ${it.est}${l.recibida?' sincat':''}" data-i="${esc(it.id)}">
       <span class="num">${lleno(it)&&it.n?it.n:''}</span>
       <button class="sel${sel?' on':''}" data-a="sel" aria-label="Seleccionar"><span class="circ"></span></button>
-      <button class="cat" data-a="cat" aria-label="Categoría">${it.cat?`<span>${it.cat}</span>`:'<i class="hueco"></i>'}</button>
+      ${l.recibida?'':`<button class="cat" data-a="cat" aria-label="Categoría">${it.cat?`<span>${it.cat}</span>`:'<i class="hueco"></i>'}</button>`}
       <textarea class="tx" rows="1" data-a="tx" enterkeyhint="next">${esc(it.txt)}</textarea>
       <button class="ok${it.est==='hecho'?' on':''}" data-a="hecho" aria-label="Hecho">${SVG.ok}</button>
       <button class="no${it.est==='cancelado'?' on':''}" data-a="cancelado" aria-label="Cancelado">${SVG.no}</button>
       <button class="mas${conNota(it)?' on':''}" data-a="nota" aria-label="Nota">${SVG.mas}</button>
       ${q?'<span></span>':`<span class="arr" aria-label="Arrastrar para mover">${SVG.arr}</span>`}</div>`;}
   if(q&&!vis.length)h+=`<div class="vacio">Nada con esa búsqueda.</div>`;
-  h+=`<div class="pie-l"><button class="btn" id="bMas10">${SVG.masG.replace(/30/g,'20')} 10</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?estadoComp(l,'compartida'):''}</button></div>`;
+  h+=`<div class="pie-l"><button class="btn" id="bMas10" aria-label="Agregar filas">${SVG.masG.replace(/30/g,'20')}${l.recibida?'':' 10'}</button><span style="flex:1"></span><button class="btn" id="bCopiar" aria-label="Copiar lista">${SVG.copiar}</button><button class="btn" id="bComp" aria-label="Compartir">${SVG.comp}${l.comp&&!l.comp.revocada?estadoComp(l,'compartida'):''}</button></div>`;
   const m=$('#main'); m.innerHTML=h;
   const nm=$('#nombre'); nm.oninput=()=>{l.nombre=nm.value;l.t=Date.now();cambio(l);};
   nm.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const t=m.querySelector('.tx');t&&t.focus();}};
@@ -407,7 +409,7 @@ function pintarLista(l){
   m.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>herramienta(l,b.dataset.h));
   m.querySelectorAll('[data-or]').forEach(b=>b.onclick=()=>ordenar(l,b.dataset.or));
   arrastre(l,m);
-  $('#bMas10').onclick=()=>{agregarVacios(l,10);cambio(l);pintar();setTimeout(()=>scrollTo(0,document.body.scrollHeight),50);};
+  $('#bMas10').onclick=()=>{agregarVacios(l,l.recibida?5:10);cambio(l);pintar();setTimeout(()=>scrollTo(0,document.body.scrollHeight),50);};
   $('#bComp').onclick=()=>{S.modal={tipo:'compartir',lid:l.id};pintar();};
   $('#bCopiar').onclick=()=>copiarLista(l);
 }
@@ -421,7 +423,7 @@ function pintarTablero(l){
     <div class="tj-v"><button class="ok${it.est==='hecho'?' on':''}" data-a="hecho" aria-label="Hecha">${SVG.ok}</button><button class="no${it.est==='cancelado'?' on':''}" data-a="cancelado" aria-label="Cancelada">${SVG.no}</button></div></div>
     <input class="tj-sub" data-sub value="${esc(it.sub||'')}" placeholder="detalle" enterkeyhint="next"></div>`;
   let h=(l.recibida?'':`<input class="nombre" id="nombre" value="${esc(l.nombre)}" placeholder="Nombre del tablero">`)
-   +`<div class="herr">${l.recibida?"":`<button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button>`}${l.recibida?"":`<button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover">${SVG.mover}</button>`}<span class="sep"></span><button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button><button data-h="ordenar" aria-label="Ordenar">${SVG.ordenar}</button></div>`;
+   +`<div class="herr">${l.recibida?"":`<button data-h="borrar" class="${ns?'':'apag'}" aria-label="Borrar">${SVG.borrar}</button>`}${l.recibida?"":`<button data-h="mover" class="${ns?'':'apag'}" aria-label="Mover">${SVG.mover}</button>`}<span class="sep"></span>${l.recibida?'':`<button data-h="auto" class="${l.auto?'on':''}" aria-label="Pendientes arriba">${SVG.filtro}</button>`}<button data-h="ordenar" aria-label="Ordenar">${SVG.ordenar}</button></div>`;
   let vistas=0;
   for(const sc of secs(l)){
     const todas=deSec(l,sc.id), vis=q?todas.filter(coincide):todas;
